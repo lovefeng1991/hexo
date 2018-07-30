@@ -5,15 +5,15 @@
 # Site
 title: 胖胖的世界
 subtitle:
-description: PHP
-keywords: PHP MySQL
+description: 菜鸟程序员
+keywords: PHP MySQL Leetcode
 author: 胖胖的世界
-language: 
+language: zh-Hans 
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://blog.pangpang.fun
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -26,7 +26,7 @@ archive_dir: archives
 category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
-skip_render:
+skip_render: 
 
 # Writing
 new_post_name: :year-:month-:day-:title.md # File name of new posts
@@ -73,7 +73,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: yilia
+theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
@@ -82,3 +82,12 @@ deploy:
   repo: git@github.com:lovefeng1991/lovefeng1991.github.io.git
   branch: master
   message:
+
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000
+
+baidusitemap:
+  path: baidusitemap.xml
