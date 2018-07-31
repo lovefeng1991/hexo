@@ -91,3 +91,6 @@ search:
 
 baidusitemap:
   path: baidusitemap.xml
+
+sitemap:
+  path: sitemap.xml
