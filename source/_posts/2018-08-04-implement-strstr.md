@@ -21,11 +21,13 @@ function strStrN(string $haystack, string $needle) :int {
     $i = $j = 0;
 
     while ($i <= $lengthHaystack - $lengthNeedle) {
-        while ($j < $lengthNeedle && $haystack[$i + $j] != $needle[$j]) {
-            break;
+        for ($j = $lengthNeedle - 1; $j >= 0; $j--) {
+            if ($haystack[$i + $j] != $needle[$j]) {
+                break;
+            }
         }
 
-        if ($j == $lengthNeedle) {
+        if ($j == -1) {
             return $i;
         }
 
