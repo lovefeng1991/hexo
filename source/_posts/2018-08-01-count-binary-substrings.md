@@ -3,9 +3,7 @@ title: Leetcode696. 计数二进制子串
 date: 2018-08-01 19:20:26
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/count-binary-substrings](https://leetcode.com/problems/count-binary-substrings "leetcode696")

@@ -3,9 +3,7 @@ title: Leetcode13. 罗马数字转整数
 date: 2018-08-01 13:24:16
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/roman-to-integer](https://leetcode.com/problems/roman-to-integer "leetcode13")

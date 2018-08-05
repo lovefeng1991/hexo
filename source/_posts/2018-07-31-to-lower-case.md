@@ -3,9 +3,7 @@ title: Leetcode709. 转换为小写字母
 date: 2018-07-31 22:40:06
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/to-lower-case/description/](https://leetcode.com/problems/to-lower-case/description/ "leetcode709")

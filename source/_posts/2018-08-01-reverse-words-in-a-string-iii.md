@@ -3,9 +3,7 @@ title: Leetcode557. 反转字符串中的单词III
 date: 2018-08-01 13:02:49
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/reverse-words-in-a-string-iii](https://leetcode.com/problems/reverse-words-in-a-string-iii "leetcode557")

@@ -3,9 +3,7 @@ title: Leetcode67. 二进制求和
 date: 2018-08-02 16:31:48
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/add-binary](https://leetcode.com/problems/add-binary "leetcode67")

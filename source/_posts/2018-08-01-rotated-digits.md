@@ -3,9 +3,7 @@ title: Leetcode788. 旋转数字
 date: 2018-08-01 22:24:49
 tags: leetcode
 categories:
-- leetcode
-- string
-- easy
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/rotated-digits](https://leetcode.com/problems/rotated-digits "leetcode788")

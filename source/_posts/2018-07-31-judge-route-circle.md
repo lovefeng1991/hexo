@@ -2,10 +2,8 @@
 title: Leetcode657. 判断路线成圈
 date: 2018-07-31 23:41:53
 tags: leetcode
-categories:
-- leetcode
-- string
-- easy
+categories: 
+- [leetcode, string, easy]
 ---
 ## 题目地址
 [https://leetcode.com/problems/judge-route-circle](https://leetcode.com/problems/judge-route-circle "leetcode657")
