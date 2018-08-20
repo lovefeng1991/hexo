@@ -70,7 +70,7 @@ if ($this->matcher instanceof RequestMatcherInterface) {
 }
 ```
 
-> \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Routing\Router.php
+> \vendor\symfony\symfony\src\Symfony\Component\Routing\Router.php
 
 ## 缓存路由
 在获取匹配器过程中，会缓存路由到PHP文件中。缓存得到的PHP文件才是真正用于匹配请求的匹配器
@@ -95,4 +95,4 @@ $cache = $this->getConfigCacheFactory()->cache($this->options['cache_dir'].'/'.$
 );
 ```
 
-> \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Routing\Router.php
+> \vendor\symfony\symfony\src\Symfony\Component\Routing\Router.php
