@@ -41,7 +41,7 @@ router_listener服务通过配置kernel.event_subscriber标签来订阅事件。
 
 > **注意：**自定义服务，这里指事件订阅器，在配置了kernel.event_subscriber标签的情况下，必须实现EventSubscriberInterface接口的getSubscribedEvents方法。
 
-RegisterListenersPass类中的process函数：
+RegisterListenersPass类的process函数：
 
 ```php
 public function process(ContainerBuilder $container)
@@ -134,7 +134,7 @@ public function process(ContainerBuilder $container)
 > 
 > \vendor\symfony\symfony\src\Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass.php
 
-RouterListener类中的getSubscribedEvents函数：
+RouterListener类的getSubscribedEvents函数：
 
 ```php
 public static function getSubscribedEvents()
@@ -147,8 +147,7 @@ public static function getSubscribedEvents()
 }
 ```
 
-显然，router_listener服务通过getSubscribedEvents函数订阅了kernel.request、kernel.finish_request、kernel.exception这3个事件。
-也就是说,配置
+显然，router_listener服务通过getSubscribedEvents函数订阅了kernel.request、kernel.finish_request、kernel.exception这3个事件。也就是说,配置
 ```xml
 <tag name="kernel.event_subscriber" />
 ```
@@ -168,7 +167,7 @@ public static function getSubscribedEvents()
 > \vendor\symfony\symfony\src\Symfony\Component\HttpKernel\EventListener\RouterListener.php
 
 ## 处理请求
-Symfony3.4在处理请求时，会分发kernel.request事件。在分发kernel.request事件过程中，router_listener服务会调用回调函数onKernelRequest。
+Symfony3.4在处理请求时，会分发kernel.request事件。在分发过程中，router_listener服务会调用回调函数onKernelRequest。
 
 ```php
 $event = new GetResponseEvent($this, $request, $type);
@@ -235,7 +234,7 @@ public function onKernelRequest(GetResponseEvent $event)
 > \vendor\symfony\symfony\src\Symfony\Component\HttpKernel\EventListener\RouterListener.php
 
 ## 匹配请求
-Router的matchRequest函数：
+Router类的matchRequest函数：
 
 ```php
 public function matchRequest(Request $request)
@@ -318,9 +317,11 @@ protected function getMatcherDumperInstance()
 }
 ```
 
+> matcher_dumper_class：Symfony\Component\Routing\Matcher\Dumper\PhpMatcherDumper
+> 
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\Router.php
 
-matcher_dumper_class即Symfony\Component\Routing\Matcher\Dumper\PhpMatcherDumper类。该函数使用解析路由配置获得的RouteCollection对象实例化PhpMatcherDumper类。见下面配置。
+该函数使用解析路由配置获得的RouteCollection对象实例化PhpMatcherDumper类。见下面配置。
 
 ```xml
 <parameters>
@@ -666,7 +667,7 @@ private static $availableKeys = array(
 - condition：条件，使用[**The Expression Syntax**](https://symfony.com/doc/3.4/components/expression_language/syntax.html "The Expression Syntax")
 - controller：映射的控制器，比如EmployeesBundle:Default:employees
 
-YamlFileLoader类的validate函数：
+validate函数用来验证路由配置是否合法，可以看到路由配置需要遵守的约定。YamlFileLoader类的validate函数：
 
 ```php
 protected function validate($config, $name, $path)
@@ -710,8 +711,6 @@ protected function validate($config, $name, $path)
 }
 ```
 
-validate函数用来验证路由配置是否合法，可以看到路由配置需要遵守的约定。
-
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\Loader\YamlFileLoader.php
 
 YamlFileLoader类的parseRoute函数：
@@ -742,6 +741,7 @@ protected function parseRoute(RouteCollection $collection, $name, array $config,
 ```
 
 > **注意：**在配置了path的情况下，path、defaults、requirements、options、host、schemes、methods、condition、controller这9个配置项有效。
+> **注意：**实例化Route过程中，会为options添加默认值{'compiler_class': 'Symfony\\Component\\Routing\\RouteCompiler'}。
 > 
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\Loader\YamlFileLoader.php
 
@@ -809,6 +809,7 @@ protected function parseImport(RouteCollection $collection, array $config, $path
 ```
 
 > **注意：**在配置了resource的情况下，resource、type、prefix、defaults、requirements、options、host、condition、schemes、methods这10个配置项有效。
+> 
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\Loader\YamlFileLoader.php
 
 RouteCollection类的addPrefix函数：
@@ -833,11 +834,10 @@ public function addPrefix($prefix, array $defaults = array(), array $requirement
 }
 ```
 
-这个函数比较简单，作用就是遍历集合中所有路由，在path前面添加前缀。RouteCollection类中并没有setPrefix函数，因此prefix需要配合resource配置项使用，为resource内所有路由添加前缀。
-
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\RouteCollection.php
 
-配置了resource的情况下，由于resource的配置非常灵活，这里需要调用父类的import函数确定具体的加载器并重复上面步骤。
+这个函数比较简单，作用就是遍历集合中所有路由，在path前面添加前缀。RouteCollection类中并没有setPrefix函数，因此prefix需要配合resource配置项使用，为resource内所有路由添加前缀。
+配置了resource的情况下，由于resource的配置非常灵活，这里需要调用父类的import函数确定具体的加载器并重复上面步骤。FileLoader类的import函数：
 
 ```php
 public function import($resource, $type = null, $ignoreErrors = false, $sourceResource = null)
@@ -947,7 +947,176 @@ private function doImport($resource, $type = null, $ignoreErrors = false, $sourc
 }
 ```
 
-至此，所有路由配置解析完毕，返回RouteCollection对象。RouteCollection类中有两个属性，routes属性保存所有的路由信息，是一个Route对象数组，resources保存已经解析过的资源文件，是一个实现了SelfCheckingResourceInterface接口的对象数组，比如FileResource。
+## 解析控制器
+返回看[加载路由资源](#加载路由资源)，DelegatingLoader类的load函数在加载完路由配置后，需要进一步解析controller配置项，比如EmployeesBundle:Default:employees将被解析为EmployeesBundle\Controller\DefaultController::employeesAction。controller配置一般分为3个部分，Bundle、Controller和Action，使用:连接。ControllerNameParser类的parse函数：
 
-> \vendor\symfony\symfony\src\Symfony\Component\Config\Loader\FileLoader.php
-# 未完待续
+```php
+public function parse($controller)
+{
+    // 以:为分隔符分割字符串
+    $parts = explode(':', $controller);
+    // controller需要定义三个部分，Bundle、Controller和Action
+    if (3 !== \count($parts) || \in_array('', $parts, true)) {
+        throw new \InvalidArgumentException(sprintf('The "%s" controller is not a valid "a:b:c" controller string.', $controller));
+    }
+
+    $originalController = $controller;
+    list($bundle, $controller, $action) = $parts;
+    $controller = str_replace('/', '\\', $controller);
+    $bundles = array();
+
+    try {
+        // 获取Bundle
+        $allBundles = $this->kernel->getBundle($bundle, false, true);
+    } catch (\InvalidArgumentException $e) {
+        $message = sprintf(
+            'The "%s" (from the _controller value "%s") does not exist or is not enabled in your kernel!',
+            $bundle,
+            $originalController
+        );
+
+        if ($alternative = $this->findAlternative($bundle)) {
+            $message .= sprintf(' Did you mean "%s:%s:%s"?', $alternative, $controller, $action);
+        }
+
+        throw new \InvalidArgumentException($message, 0, $e);
+    }
+
+    if (!\is_array($allBundles)) {
+        // happens when HttpKernel is version 4+
+        $allBundles = array($allBundles);
+    }
+
+    foreach ($allBundles as $b) {
+        // 拼接出完整的控制器
+        $try = $b->getNamespace().'\\Controller\\'.$controller.'Controller';
+        if (class_exists($try)) {
+            // 控制器存在直接返回
+            return $try.'::'.$action.'Action';
+        }
+
+        $bundles[] = $b->getName();
+        $msg = sprintf('The _controller value "%s:%s:%s" maps to a "%s" class, but this class was not found. Create this class or check the spelling of the class and its namespace.', $bundle, $controller, $action, $try);
+    }
+
+    if (\count($bundles) > 1) {
+        $msg = sprintf('Unable to find controller "%s:%s" in bundles %s.', $bundle, $controller, implode(', ', $bundles));
+    }
+
+    throw new \InvalidArgumentException($msg);
+}
+```
+
+> **注意：**自定义Bundle必须在AppKernel中注册，即在registerBundles函数中声明，否则上面函数中getBundle函数会找不到指定的Bundle。
+> 
+> \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Controller\ControllerNameParser.php
+
+## 解析参数
+返回看[路由集合](#路由集合)，在加载完路由配置后，需要解析其中的参数。Router中类的resolveParameters函数：
+
+```php
+private function resolveParameters(RouteCollection $collection)
+{
+    // 
+    foreach ($collection as $route) {
+        // 解析defaults配置项
+        foreach ($route->getDefaults() as $name => $value) {
+            $route->setDefault($name, $this->resolve($value));
+        }
+
+        // 解析requirements配置项
+        foreach ($route->getRequirements() as $name => $value) {
+            $route->setRequirement($name, $this->resolve($value));
+        }
+
+        // 解析path配置项
+        $route->setPath($this->resolve($route->getPath()));
+        // 解析host配置项
+        $route->setHost($this->resolve($route->getHost()));
+
+        $schemes = array();
+        // 解析schemes配置项
+        foreach ($route->getSchemes() as $scheme) {
+            $schemes = array_merge($schemes, explode('|', $this->resolve($scheme)));
+        }
+        $route->setSchemes($schemes);
+
+        $methods = array();
+        // 解析methods配置项
+        foreach ($route->getMethods() as $method) {
+            $methods = array_merge($methods, explode('|', $this->resolve($method)));
+        }
+        $route->setMethods($methods);
+        // 解析condition配置项
+        $route->setCondition($this->resolve($route->getCondition()));
+    }
+}
+```
+
+> **注意：**可以看出，schemes和methods有两种配置方法，以yaml格式为例，有methods: [get, post]和methods: get|post两种配置方法。
+> 
+> \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Routing\Router.php
+
+resolve函数比较简单，主要解析由%包含的参数。Router类的resolve函数：
+
+```php
+private function resolve($value)
+{
+    // 参数为数组的情况，递归解析
+    if (\is_array($value)) {
+        foreach ($value as $key => $val) {
+            $value[$key] = $this->resolve($val);
+        }
+
+        return $value;
+    }
+
+    // 参数不是字符串，直接返回
+    if (!\is_string($value)) {
+        return $value;
+    }
+
+    // 容器
+    $container = $this->container;
+
+    // 解析%包围的参数，比如%host%
+    $escapedValue = preg_replace_callback('/%%|%([^%\s]++)%/', function ($match) use ($container, $value) {
+        // skip %%
+        if (!isset($match[1])) {
+            return '%%';
+        }
+
+        if (preg_match('/^env\(\w+\)$/', $match[1])) {
+            throw new RuntimeException(sprintf('Using "%%%s%%" is not allowed in routing configuration.', $match[1]));
+        }
+
+        // 获取参数实际值
+        $resolved = $container->getParameter($match[1]);
+
+        if (\is_string($resolved) || is_numeric($resolved)) {
+            $this->collectedParameters[$match[1]] = $resolved;
+
+            return (string) $resolved;
+        }
+
+        throw new RuntimeException(sprintf(
+            'The container parameter "%s", used in the route configuration value "%s", '.
+            'must be a string or numeric, but it is of type %s.',
+            $match[1],
+            $value,
+            \gettype($resolved)
+            )
+        );
+    }, $value);
+
+    return str_replace('%%', '%', $escapedValue);
+}
+```
+
+> **注意：**一般自定义参数会在\app\config\parameters.yml和\app\config\services.yml中定义，定义后可以在其他地方以%key%的形式调用。其中\app\config\parameters.yml包含全局自定义参数，\app\config\services.yml包含服务自定义参数。
+> 
+> \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Routing\Router.php
+
+至此，所有路由配置解析完毕，返回RouteCollection对象。RouteCollection类中有两个属性，routes属性保存所有的路由信息，是一个Route对象数组，resources保存已经解析过的资源文件，是一个实现了ResourceInterface接口的对象数组，比如FileResource、DirectoryResource。
+
+> ResourceInterface：Symfony\Component\Config\Resource\ResourceInterface

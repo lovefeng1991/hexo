@@ -83,7 +83,7 @@
                 <i class="fa fa-calendar-check-o"></i>
               </span>
               {% if theme.post_meta.item_text %}
-                <span class="post-meta-item-text">{{ __('post.modified') }}&#58;</span>
+                <span class="post-meta-item-text">{{ __('post.modified') }}</span>
               {% endif %}
               <time title="{{ __('post.modified') }}" itemprop="dateModified" datetime="{{ moment(post.updated).format() }}">
                 {{ date(post.updated, config.date_format) }}

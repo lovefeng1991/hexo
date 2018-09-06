@@ -145,9 +145,9 @@ social_icons:
 
 # Blog rolls
 links_icon: link
-links_title: Links
-links_layout: block
-#links_layout: inline
+links_title: 友情链接
+#links_layout: block
+links_layout: inline
 links:
   PHP: http://www.php.net/
 
@@ -182,7 +182,7 @@ sidebar:
   #  - always  expand for all pages automatically
   #  - hide    expand only when click on the sidebar toggle icon.
   #  - remove  Totally remove sidebar including sidebar toggle.
-  display: hide
+  display: post
   #display: always
   #display: hide
   #display: remove
@@ -197,7 +197,7 @@ sidebar:
   scrollpercent: false
 
   # Enable sidebar on narrow view (only for Muse | Mist).
-  onmobile: false
+  onmobile: true
 
 
 # ---------------------------------------------------------------
@@ -230,10 +230,13 @@ post_meta:
 # Dependencies: https://github.com/willin/hexo-wordcount
 post_wordcount:
   item_text: true
-  wordcount: false
+  # 字数统计
+  wordcount: true
+  # 阅读时长
   min2read: false
-  totalcount: false
-  separated_meta: true
+  # 全站字数统计
+  totalcount: true
+  separated_meta: false
 
 # Wechat Subscriber
 #wechat_subscriber:
@@ -395,7 +398,7 @@ valine:
 
 # Support for LiveRe comments system.
 # You can get your uid from https://livere.com/insight/myCode (General web site)
-# livere_uid: MTAyMC8zODQ4Ny8xNTAxNQ==
+livere_uid: MTAyMC8zODQ4Ny8xNTAxNQ==
 
 # Gitment
 # Introduction: https://imsun.net/posts/gitment-introduction/
