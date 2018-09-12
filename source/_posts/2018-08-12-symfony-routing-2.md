@@ -9,7 +9,7 @@ tags:
 categories:
 - [symfony]
 ---
-本文主要讲解Symfony3.4是如何将路由配置文件解析为RouteCollection对象的。
+本文主要讲解Symfony3.4加载路由配置文件并将它解析为RouteCollection对象。
 
 ## 订阅事件
 router_listener服务通过配置kernel.event_subscriber标签来订阅事件。
@@ -32,7 +32,7 @@ router_listener服务通过配置kernel.event_subscriber标签来订阅事件。
 - 第二个tag节点表示日志级别。
 - 其余argument节点表示服务实例化时所需的参数。
 
-详细分析会在之后**依赖注入组件**的文章中。
+详细分析会在**依赖注入组件**的文章中。
 
 > \vendor\symfony\symfony\src\Symfony\Bundle\FrameworkBundle\Resources\config\routing.xml
 
@@ -287,7 +287,9 @@ public function getMatcher()
             }
 
             $options = array(
+                // 匹配器类名
                 'class' => $this->options['matcher_cache_class'],
+                // 匹配器父类名
                 'base_class' => $this->options['matcher_base_class'],
             );
 
@@ -324,7 +326,7 @@ protected function getMatcherDumperInstance()
 该函数使用解析路由配置获得的RouteCollection对象实例化PhpMatcherDumper类。见下面配置。
 
 ```xml
-<parameters>
+<parameters>PhpMatcherDumper
     <parameter key="router.options.generator_class">Symfony\Component\Routing\Generator\UrlGenerator</parameter>
     <parameter key="router.options.generator_base_class">Symfony\Component\Routing\Generator\UrlGenerator</parameter>
     <parameter key="router.options.generator_dumper_class">Symfony\Component\Routing\Generator\Dumper\PhpGeneratorDumper</parameter>
@@ -735,7 +737,7 @@ protected function parseRoute(RouteCollection $collection, $name, array $config,
     // 实例化路由
     $route = new Route($config['path'], $defaults, $requirements, $options, $host, $schemes, $methods, $condition);
 
-    // 添加路由
+    // 添加路由，重复定义的情况，会按先后顺序只保留后者
     $collection->add($name, $route);
 }
 ```
