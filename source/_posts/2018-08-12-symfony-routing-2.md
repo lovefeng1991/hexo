@@ -189,7 +189,7 @@ public function onKernelRequest(GetResponseEvent $event)
     $this->setCurrentRequest($request);
 
     if ($request->attributes->has('_controller')) {
-        // 路由匹配已经完成。如果一个事件订阅两次，这里会提前返回，避免无效工作。
+        // 路由匹配已经完成。如果一个事件订阅两次，这里会提前返回，避免无效工作
         return;
     }
 
@@ -459,7 +459,7 @@ public function load($resource, $type = null)
     }
 
     foreach ($collection->all() as $route) {
-        // 必须配置controller项或者defaults中_controller项，并且不能为空
+        // 不解析无效的值
         if (!\is_string($controller = $route->getDefault('_controller')) || !$controller) {
             continue;
         }
@@ -468,7 +468,7 @@ public function load($resource, $type = null)
             // 解析控制器，EmployeesBundle:Default:employees将被解析为EmployeesBundle\Controller\DefaultController::employeesAction
             $controller = $this->parser->parse($controller);
         } catch (\InvalidArgumentException $e) {
-            // unable to optimize unknown notation
+            // 注意这里当controller的值不合理时，Symfony虽然会抛出异常，但没处理
         }
 
         // 替换为完整的控制器
@@ -661,13 +661,15 @@ private static $availableKeys = array(
 - prefix：前缀，与resource搭配使用
 - path：路由路径
 - host：主机，比如blog.pangpang.fun
-- schemes：协议，比如http、https
+- schemes：表示URI schemes，常见的比如http、https
 - methods：请求类型，比如get、post
 - defaults：默认值，与path项搭配使用，其中_controller非常重要
 - requirements：一般为正则表达式
 - options：选项，比如{'utf8': true}表示支持utf8
 - condition：条件，使用[**The Expression Syntax**](https://symfony.com/doc/3.4/components/expression_language/syntax.html "The Expression Syntax")
 - controller：映射的控制器，比如EmployeesBundle:Default:employees
+
+> **注意：**schemes表示URI schemes，具体见[https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Generic_syntax](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Generic_syntax "URI")。常见schemes有：http、https、ftp、mailto，对于web应用来说，scheme一般表示http和https。
 
 validate函数用来验证路由配置是否合法，可以看到路由配置需要遵守的约定。YamlFileLoader类的validate函数：
 
@@ -706,7 +708,7 @@ protected function validate($config, $name, $path)
             $name, $path
         ));
     }
-    // 配置项controller和defaults中的_controller不能同时出现，必须配置其中一个
+    // 配置项controller和defaults中的_controller不能同时出现
     if (isset($config['controller']) && isset($config['defaults']['_controller'])) {
         throw new \InvalidArgumentException(sprintf('The routing file "%s" must not specify both the "controller" key and the defaults key "_controller" for "%s".', $path, $name));
     }

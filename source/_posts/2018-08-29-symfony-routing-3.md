@@ -26,6 +26,7 @@ public function dump(array $options = array())
     ), $options);
 
     $interfaces = class_implements($options['base_class']);
+    // 是否支持重定向
     $supportsRedirections = isset($interfaces['Symfony\\Component\\Routing\\Matcher\\RedirectableUrlMatcherInterface']);
 
     return <<<EOF
@@ -62,7 +63,7 @@ PhpMatcherDumper类的generateMatchMethod函数：
 ```php
 private function generateMatchMethod($supportsRedirections)
 {
-    // 编译路由
+    // 编译路由，生成代码
     $code = rtrim($this->compileRoutes($this->getRoutes(), $supportsRedirections), "\n");
 
     // match函数的代码
@@ -109,6 +110,7 @@ private function compileRoutes(RouteCollection $routes, $supportsRedirections)
                 $fetchedHost = true;
             }
 
+            // 匹配$host的代码
             $code .= sprintf("        if (preg_match(%s, \$host, \$hostMatches)) {\n", var_export($regex, true));
         }
 
@@ -137,13 +139,13 @@ private function compileRoutes(RouteCollection $routes, $supportsRedirections)
 }
 ```
 
-> **注意：**在解析host配置项时，host配置项的值会被解析为字符串，因此host配置项需要使用正则表达式。host配置项使用场景一般用来区分桌面版和移动版页面，比如host: (www|m).pangpang.fun。
+> **注意：**在解析host配置项时，host配置项的值会被解析为字符串，因此host配置项需要使用正则表达式。host配置项使用场景可以用来区分桌面版和移动版页面，比如host: (www|m).pangpang.fun。
 > 
 > **注意：**正则表达式中m选项表示多行模式，^和$匹配每行的开头和结尾。
 > 
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\Matcher\Dumper\PhpMatcherDumper.php
 
-groupRoutesByHostRegex函数会将host正则相同的路由分为同一组，同组路由具有其连续性。在分组过程中，会编译路由。PhpMatcherDumper类的groupRoutesByHostRegex函数：
+groupRoutesByHostRegex函数会将host正则相同的路由分为同一组，同组路由具有连续性。在分组过程中，会编译路由。PhpMatcherDumper类的groupRoutesByHostRegex函数：
 
 ```php
 private function groupRoutesByHostRegex(RouteCollection $routes)
@@ -257,7 +259,7 @@ public static function compile(Route $route)
     );
 }
 ```
-> **注意：**host模式串和path模式串能使用同一变量，但不推荐。
+> **注意：**host模式串和path模式串能使用同一变量。
 > 
 > \vendor\symfony\symfony\src\Symfony\Component\Routing\RouteCompiler.php
 
@@ -391,7 +393,7 @@ private static function compilePattern(Route $route, $pattern, $isHost)
         // 考虑path: /{_locale}/default/employees/{id}，假设变量_locale和id都设置了默认值，
         // 变量token(id)是第一个可选token，也就是可以不用传参数，/en/default/employees能正确匹配，
         // 而变量token(_locale)必须传参数，尽管设置了默认值，/default/employees/1无法正确匹配，
-        // 也就是说寻找第一个可选token过程中，讲究变量token的连续性
+        // 也就是说寻找第一个可选token过程中，会考虑变量token的连续性
         for ($i = \count($tokens) - 1; $i >= 0; --$i) {
             // 从后向前找
             $token = $tokens[$i];
@@ -728,6 +730,13 @@ private function compileStaticPrefixRoutes(StaticPrefixCollection $collection, $
 }
 ```
 
+一般情况下，文件系统的路径中带有尾斜杠代表目录（/home/lovefeng1991/log/），反之代表文件（/home/lovefeng1991/log）。而浏览器会把这两种情况按相同URL路径处理，比如`https://example.com/foo/`和`https://example.com/foo`会按同一URL处理。Symfony使用重定向的方法来处理这种逻辑，但仅在处理GET和HEAD请求。具体见[https://symfony.com/doc/3.4/routing.html#redirecting-urls-with-trailing-slashes](https://symfony.com/doc/3.4/routing.html#redirecting-urls-with-trailing-slashes "redirecting-urls-with-trailing-slashes")。
+
+| 路由路径 | 请求路径为/foo         | 请求路径为/foo/
+| :------ | :-------------------- | :------------
+| /foo    | 匹配成功，返回200状态码 | 匹配失败，返回404状态码
+| /foo/   | 301重定向到/foo/       | 匹配成功，返回200状态码
+
 PhpMatcherDumper类的compileRoute函数：
 
 ```php
@@ -751,9 +760,11 @@ private function compileRoute(Route $route, $name, $supportsRedirections, $paren
     // 获取path正则
     $regex = $compiledRoute->getRegex();
 
+    // 下面这个正则用来匹配正则表示式，捕获的内容会被分组到url中，比如#^\d+$#，$m['url']的值为\d+
     if (!\count($compiledRoute->getPathVariables()) && false !== preg_match('#^(.)\^(?P<url>.*?)\$\1#'.('u' === substr($regex, -1) ? 'u' : ''), $regex, $m)) {
         // path中不包含变量
         if ($supportsTrailingSlash && '/' === substr($m['url'], -1)) {
+            // 去掉尾斜杠
             $conditions[] = sprintf('%s === $trimmedPathinfo', var_export(rtrim(str_replace('\\', '', $m['url']), '/'), true));
             $hasTrailingSlash = true;
         } else {
@@ -762,11 +773,12 @@ private function compileRoute(Route $route, $name, $supportsRedirections, $paren
     } else {
         // path中包含变量
         if ($compiledRoute->getStaticPrefix() && $compiledRoute->getStaticPrefix() !== $parentPrefix) {
-            // 父前缀路由集合的前缀已经编译过，这里要忽略父前缀
+            // 父前缀已经编译过，忽略父前缀
             $conditions[] = sprintf('0 === strpos($pathinfo, %s)', var_export($compiledRoute->getStaticPrefix(), true));
         }
 
         if ($supportsTrailingSlash && $pos = strpos($regex, '/$')) {
+            // /后拼接?表示尾斜杠可选
             $regex = substr($regex, 0, $pos).'/?$'.substr($regex, $pos + 2);
             $hasTrailingSlash = true;
         }
@@ -785,7 +797,7 @@ private function compileRoute(Route $route, $name, $supportsRedirections, $paren
         $conditions[] = $this->getExpressionLanguage()->compile($route->getCondition(), array('context', 'request'));
     }
 
-    // 拼接匹配条件
+    // 拼接条件代码，主要有三部分组成，前缀，path正则和condition配置项
     $conditions = implode(' && ', $conditions);
 
     $code .= <<<EOF
@@ -796,10 +808,9 @@ EOF;
 
     $gotoname = 'not_'.preg_replace('/[^A-Za-z0-9_]/', '', $name);
 
-    // the offset where the return value is appended below, with indendation
+    // 12表示3个缩进，以4个空格为单位
     $retOffset = 12 + \strlen($code);
 
-    // optimize parameters array
     if ($matches || $hostMatches) {
         $vars = array();
         if ($hostMatches) {
@@ -816,18 +827,23 @@ EOF;
             str_replace("\n", '', var_export($route->getDefaults(), true))
         );
     } elseif ($route->getDefaults()) {
+        // 路由有默认值
         $code .= sprintf("            \$ret = %s;\n", str_replace("\n", '', var_export(array_replace($route->getDefaults(), array('_route' => $name)), true)));
     } else {
+        // 路由无默认值，因为未设置controller配置项；在设置controller配置项的情况下，会有默认配置项_controller
         $code .= sprintf("            \$ret = array('_route' => '%s');\n", $name);
     }
 
+    // path正则有尾斜杠
     if ($hasTrailingSlash) {
         $code .= <<<EOF
         if ('/' === substr(\$pathinfo, -1)) {
-            // no-op
+            // 什么都不用做
         } elseif ('GET' !== \$canonicalMethod) {
+            // 前面在请求方法为HEAD时，$canonicalMethod会设置为GET，保证在HEAD请求下处理尾斜杠
             goto $gotoname;
         } else {
+            // 301重定向
             return array_replace(\$ret, \$this->redirect(\$rawPathinfo.'/', '$name'));
         }
 
@@ -837,9 +853,11 @@ EOF;
 
     if ($methods) {
         $methodVariable = \in_array('GET', $methods) ? '$canonicalMethod' : '$requestMethod';
+        // 拼接methods配置项的值
         $methods = implode("', '", $methods);
     }
 
+    // 获取schemes
     if ($schemes = $route->getSchemes()) {
         if (!$supportsRedirections) {
             throw new \LogicException('The "schemes" requirement is only supported for URL matchers that implement RedirectableUrlMatcherInterface.');
@@ -853,6 +871,7 @@ EOF;
             if (\$hasRequiredScheme) {
                 \$allow = array_merge(\$allow, array('$methods'));
             }
+            // method未匹配时，直接跳出
             goto $gotoname;
         }
         if (!\$hasRequiredScheme) {
@@ -860,6 +879,7 @@ EOF;
                 goto $gotoname;
             }
 
+            // 在scheme未匹配，请求方法为GET和HEAD请求时，会发生301重定向
             return array_replace(\$ret, \$this->redirect(\$rawPathinfo, '$name', key(\$requiredSchemes)));
         }
 
@@ -873,6 +893,7 @@ EOF;
                 goto $gotoname;
             }
 
+            // 与上面类似
             return array_replace(\$ret, \$this->redirect(\$rawPathinfo, '$name', key(\$requiredSchemes)));
         }
 
@@ -882,6 +903,7 @@ EOF;
     } elseif ($methods) {
         $code .= <<<EOF
         if (!in_array($methodVariable, array('$methods'))) {
+            // method未匹配时，直接跳出
             \$allow = array_merge(\$allow, array('$methods'));
             goto $gotoname;
         }
@@ -893,6 +915,7 @@ EOF;
     if ($hasTrailingSlash || $schemes || $methods) {
         $code .= "            return \$ret;\n";
     } else {
+        // 将"$ret ="替换为"return"
         $code = substr_replace($code, 'return', $retOffset, 6);
     }
     $code .= "        }\n";
@@ -904,5 +927,25 @@ EOF;
     return $code;
 }
 ```
+
+> **注意：**路由在不设置配置项controller的情况下，不会影响路由的缓存。Symfony在kernel.request事件分发完成后，会去解析请求对象attributes中的_controller值，如果未设置的话，会抛出NotFoundHttpException异常。
+
+UrlMatcher类的mergeDefaults函数
+
+```php
+protected function mergeDefaults($params, $defaults)
+{
+    foreach ($params as $key => $value) {
+        // 过滤掉数字键值
+        if (!\is_int($key)) {
+            $defaults[$key] = $value;
+        }
+    }
+
+    return $defaults;
+}
+```
+
+> \vendor\symfony\symfony\src\Symfony\Component\Routing\Matcher\UrlMatcher.php
 
 # 未完待续
