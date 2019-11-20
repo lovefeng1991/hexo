@@ -40,10 +40,13 @@
 #}</div>
 
   <div class="beian-info">
+    <a target="_blank" href="http://beian.miit.gov.cn" rel="noflow">
+      {{ __('鄂ICP备') }} - 19028465号-1</a>
     <span class="post-meta-divider">|</span>
-    {{ __('鄂ICP备') }} 
-    <a target="_blank" href="http://www.miitbeian.gov.cn">19028465号-1</a>
-  </div>
+    <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010402004028" style="padding-left:30px;text-decoration:none;background:url(/uploads/beian.png) no-repeat left center" rel="noflow">
+     {{  __('浙公网安备 33010402004028号') }}
+    </a>
+  </div>  
 {% endif %}
 
 {% if theme.footer.custom_text %}
