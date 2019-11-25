@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 胖胖的世界
+title: 个人源码分析记录
 subtitle:
 description: 菜鸟程序员
-keywords: PHP MySQL Leetcode
+keywords: PHP MySQL Symfony
 author: 胖胖的世界
 language: zh-Hans 
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://blog.pangpang.fun
+url: https://www.pangpang.fun
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
